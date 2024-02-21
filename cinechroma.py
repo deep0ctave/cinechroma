@@ -1,12 +1,11 @@
 import subprocess
 import matplotlib.pyplot as plt
 import re
-import cv2
 import numpy as np
 from pathlib import Path
 
 class VideoColorAnalyzer:
-    def __init__(self, video_path, frame_color_num=16, video_color_num=5, scene_coeff=0.7, frame_extraction_mode="interval", interval=30):
+    def __init__(self, video_path, frame_color_num=16, video_color_num=5, scene_coeff=0.7, frame_extraction_mode="interval", interval=10):
         self.video_path = Path(video_path)
         self.video_name = self.video_path.stem
         self.video_format = self.video_path.suffix
@@ -113,12 +112,9 @@ class VideoColorAnalyzer:
             print(colors)
             all_colors.extend(colors)
 
-        #self.video_colors = self.extract_prominent_colors_from_array(all_colors, self.video_color_num)
-        #print("Video color extraction completed.")
-        #print("Video Colors:", self.video_colors)
     
     def extract_prominent_colors(self,image_path):
-        # ImageMagick command as a list of strings
+        
         imagemagick_command = [
             "magick",
             "convert",
@@ -128,16 +124,16 @@ class VideoColorAnalyzer:
         ]
 
         try:
-            # Execute ImageMagick command and capture output
+            
             output = subprocess.run(imagemagick_command, capture_output=True, text=True, check=True).stdout
 
-            # Regular expression pattern to match color information
+            
             color_pattern = re.compile(r'\s*(\d+):\s*\((\d+),(\d+),(\d+),\d+\)')
             print(output)
-            # Extract color information using regular expression
+            
             color_matches = color_pattern.findall(output)
 
-            # Extract prominent colors and their counts
+            
             prominent_colors = [((int(match[1]), int(match[2]), int(match[3])), int(match[0])) for match in color_matches]
 
             return prominent_colors
@@ -145,30 +141,11 @@ class VideoColorAnalyzer:
             print(f"Error: {e}")
 
     def process_video(self):
-        #self.get_total_frames()
+        
         self.extract_frames()
         self.extract_frame_info()
         self.extract_colors()
 
-    """    
-    def create_color_palette(self):
-        # Create an image with a single pixel height
-        palette = np.zeros((1, len(colors), 3), dtype=np.uint8)
-
-        # Set each pixel to the corresponding color
-        for i, color in enumerate(colors):
-            palette[0, i] = color
-
-        # Create a plot
-        fig, ax = plt.subplots(figsize=(len(colors), 1))
-
-        # Display the image as a horizontal color palette
-        ax.imshow(palette, aspect='auto')
-        ax.axis('off')
-
-        # Show the plot
-        plt.show()
-    """
 
     def plot_color_spectrum(self):
         all_colors = []
@@ -182,29 +159,29 @@ class VideoColorAnalyzer:
         num_frames = len(all_colors)
         max_colors = max(len(colors) for colors in all_colors)
 
-        # Convert all colors to tuples for compatibility with np.array
+        
         all_colors = [tuple(color) for color in all_colors]
 
-        # Create a matrix to store colors
+        
         color_matrix = np.zeros((max_colors, num_frames, 3))
     
         for i, frame_colors in enumerate(all_colors):
             for j, color in enumerate(frame_colors):
-                color_matrix[j, i, :] = np.array(color) / 255.0  # Normalize colors to range 0-1
+                color_matrix[j, i, :] = np.array(color) / 255.0  
 
-        # Plot the color matrix
+        
         plt.figure(figsize=(num_frames, max_colors))
         plt.imshow(color_matrix, aspect='auto')
         plt.xlabel('Timestamp (sec)')
         plt.ylabel('Colors')
         plt.title('Color Spectrum over Time')
-        plt.xticks(np.arange(num_frames)) #, [str(timestamps[i]) for i in range(num_frames)])
+        plt.xticks(np.arange(num_frames))
         plt.yticks(np.arange(max_colors))
         plt.grid(False)
         plt.show()
 
 if __name__ == "__main__":
-    video_path = r"C:\Users\Avinash\Downloads\animal.mkv"
+    video_path = r"Put your video path with the file extention here."
     video_analyzer = VideoColorAnalyzer(video_path)
     video_analyzer.process_video()
     video_analyzer.plot_color_spectrum()
